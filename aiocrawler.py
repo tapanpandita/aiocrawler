@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup # type: ignore
 class AIOCrawler:
 
     def __init__(self, init_url: str, depth: int = 1, concurrency: int = 1000,
-                 user_agent: str = 'AnotherCrawler') -> None:
+                 user_agent: str = 'AIOCrawler') -> None:
         '''
         Initialize State
         '''
@@ -27,6 +27,7 @@ class AIOCrawler:
             urlparse(self.init_url).netloc,
         )
         self.crawled_urls: Set[str] = set()
+        self.sitemap: Dict[str, Set[str]] = {}
         self.session: ClientSession = ClientSession()
         self.task_queue: asyncio.Queue = asyncio.Queue(maxsize=concurrency)
 
@@ -78,11 +79,13 @@ class AIOCrawler:
             self.crawled_urls.add(url)
 
             try:
-                url, links, html = await self.crawl_page(url)
+                url, links, _ = await self.crawl_page(url)
             except Exception as excp:
                 #TODO: Handle exception correctly
                 print(f'=============={excp}===============')
             else:
+                self.sitemap[url] = links
+
                 for link in links:
                     await self.task_queue.put((link, depth + 1))
             finally:
@@ -101,3 +104,10 @@ class AIOCrawler:
             worker.cancel()
 
         await self.session.close()
+
+    async def generate_sitemap(self) -> Dict[str, Set[str]]:
+        '''
+        Run the crawler and return the generated sitemap
+        '''
+        await self.crawl()
+        return self.sitemap
