@@ -9,7 +9,7 @@ Asynchronous web crawler built on [asyncio](https://docs.python.org/3/library/as
 
 Installation
 ------------
-```
+```shell
 pip install pyaiocrawler
 ```
 
