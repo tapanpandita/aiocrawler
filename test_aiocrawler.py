@@ -45,3 +45,19 @@ def test_setting_user_agent():
     url = 'https://www.example.com'
     crawler = AIOCrawler(url, user_agent=user_agent)
     assert crawler.user_agent == user_agent
+
+
+def test_find_links():
+    url = 'https://www.example.com'
+    crawler = AIOCrawler(url)
+    html = '''
+    <html>
+    <body>
+        <a href="https://www.example.com/about">Test 1</a>
+        <a href="https://api.example.com/docs">Test 2</a>
+        <a href="/careers">Test 3</a>
+    </body>
+    </html>
+    '''
+    links = crawler.find_links(html)
+    assert links == {'https://www.example.com/about', 'https://www.example.com/careers'}
