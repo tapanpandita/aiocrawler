@@ -8,6 +8,7 @@ pytest = "*"
 pylint = "*"
 ipython = "*"
 mypy = "*"
+pytest-asyncio = "*"
 
 [packages]
 aiohttp = "*"
