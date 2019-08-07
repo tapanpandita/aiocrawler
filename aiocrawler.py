@@ -8,6 +8,7 @@ from typing import Set, Iterable, List, Tuple, Dict
 
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup # type: ignore
+from bs4.element import Tag # type: ignore
 
 
 class AIOCrawler:
@@ -43,16 +44,20 @@ class AIOCrawler:
             html = await response.read()
             return html
 
+    def normalize_urls(self, urls: Iterable[Tag]) -> Set[str]:
+        links = {
+            urljoin(self.base_url, url['href'])
+            for url in urls
+            if urljoin(self.base_url, url['href']).startswith(self.base_url)
+        }
+        return links
+
     def find_links(self, html: bytes) -> Set[str]:
         '''
         Find all the links in passed html
         '''
         soup = BeautifulSoup(html, 'html.parser')
-        links = {
-            urljoin(self.base_url, a['href'])
-            for a in soup.select('a[href]')
-            if urljoin(self.base_url, a['href']).startswith(self.base_url)
-        }
+        links = self.normalize_urls(soup.select('a[href]'))
         return links
 
     async def crawl_page(self, url: str) -> Tuple[str, Set[str], bytes]:
