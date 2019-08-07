@@ -16,10 +16,11 @@ pip install pyaiocrawler
 Usage
 -----
 
+### Generating sitemap
 ```python
 from aiocrawler import AIOCrawler
 
-crawler = AIOCrawler('https://www.google.com')
+crawler = AIOCrawler('https://www.google.com', depth=3)
 sitemap = await crawler.generate_sitemap()
 ```
 
@@ -35,7 +36,6 @@ crawler = AIOCrawler(
     user_agent='My Amazing Crawler'
 )
 ```
-
 
 ### Extending the crawler
 
