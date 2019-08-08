@@ -12,6 +12,10 @@ from bs4.element import Tag # type: ignore
 
 
 class AIOCrawler:
+    '''
+    Crawler baseclass that concurrently crawls multiple pages till provided depth
+    Built on asyncio
+    '''
 
     def __init__(self, init_url: str, depth: int = 1, concurrency: int = 1000,
                  user_agent: str = 'AIOCrawler') -> None:
@@ -28,7 +32,7 @@ class AIOCrawler:
             urlparse(self.init_url).netloc,
         )
         self.crawled_urls: Set[str] = set()
-        self.sitemap: Dict[str, Set[str]] = {}
+        self.results: List = []
         self.session: ClientSession = ClientSession()
         self.task_queue: asyncio.Queue = asyncio.Queue(maxsize=concurrency)
 
@@ -45,6 +49,10 @@ class AIOCrawler:
             return html
 
     def normalize_urls(self, urls: Iterable[Tag]) -> Set[str]:
+        '''
+        Normalizes passed urls - Adds domain to relative links
+        and ignores links from other domains
+        '''
         links = {
             urljoin(self.base_url, url['href'])
             for url in urls
@@ -54,11 +62,14 @@ class AIOCrawler:
 
     def find_links(self, html: bytes) -> Set[str]:
         '''
-        Find all the links in passed html
+        Finds all the links in passed html
         '''
         soup = BeautifulSoup(html, 'html.parser')
         links = self.normalize_urls(soup.select('a[href]'))
         return links
+
+    def parse(self, url: str, links: Set[str], html: bytes):
+        raise NotImplementedError('{}.parse callback is not defined'.format(self.__class__.__name__))
 
     async def crawl_page(self, url: str) -> Tuple[str, Set[str], bytes]:
         '''
@@ -84,13 +95,12 @@ class AIOCrawler:
             self.crawled_urls.add(url)
 
             try:
-                url, links, _ = await self.crawl_page(url)
+                url, links, html = await self.crawl_page(url)
             except Exception as excp:
                 #TODO: Handle exception correctly
                 print(f'=============={excp}===============')
             else:
-                self.sitemap[url] = links
-
+                self.results.append(self.parse(url, links, html))
                 for link in links:
                     await self.task_queue.put((link, depth + 1))
             finally:
@@ -110,9 +120,22 @@ class AIOCrawler:
 
         await self.session.close()
 
-    async def generate_sitemap(self) -> Dict[str, Set[str]]:
+    async def get_results(self) -> List:
         '''
         Run the crawler and return the generated sitemap
         '''
         await self.crawl()
-        return self.sitemap
+        return self.results
+
+
+class SitemapCrawler(AIOCrawler):
+    '''
+    Subclasses AIOCrawler to generate a sitemap for a given domain.
+    Call `get_results` to access the sitemap.
+    '''
+
+    def parse(self, url: str, links: Set[str], html: bytes) -> Tuple[str, Set[str]]:
+        '''
+        Return a tuple to create the sitemap
+        '''
+        return url, links
