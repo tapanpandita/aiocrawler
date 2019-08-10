@@ -11,7 +11,7 @@ setup(
     description = "Asynchronous web crawler built on asyncio",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/aiocrawler",
+    url="https://github.com/tapanpandita/aiocrawler",
     license = "MIT",
     install_requires = ["aiohttp", "beautifulsoup4", "cchardet", "aiodns"],
     py_modules = ["aiocrawler"],
