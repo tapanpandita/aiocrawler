@@ -1,13 +1,13 @@
 dist: xenial
 language: python
 python:
-    - "3.7"
-    - "3.7-dev"  # 3.7 development branch
-    - "3.8-dev"  # 3.8 development branch
-    - "nightly"  # nightly build
+    - '3.7'
+    - '3.7-dev'
+    - '3.8-dev'
+    - 'nightly'
 install:
-    - 'pip install pipenv'
-    - 'pipenv install --dev'
+    - pip install pipenv
+    - pipenv install --dev
 script:
     - pytest --cov=aiocrawler
 after_success:
@@ -20,5 +20,14 @@ notifications:
         on_failure: always
 branches:
     only:
-        - master
-        - develop
+    - master
+    - develop
+deploy:
+    provider: pypi
+    user: tapan.pandita
+    password:
+        secure: hdUsEPTJUldmStqropbUug4m2X/FRnAV7UEhzw+HrKre3h6TUeH/AmZX97T2gEt9GJm1OuO+RKwcC8q9ZzlAEUeiknowvqUWBODC5WXHjjU0Xdx/8oHSBHTWi8SsiqZP71IXapC+RTkWDd/ug26pRDY6x7mICMyhPbjClANlT4/jLf5j7A3yO0c9i4P6JRRQIVuoGQpR5yI6kT/qdftKSoofSrhXLgm57mxSI/IHHQX2NYD7TyIwJBiuYbewFGVATgALWD/akSBMQgvvPKa+LUQSccjl+FMgRDPIN4fCQVo8pLaNHKDiM+wbyI/ZasVVXE1J6o8N+q+Qh+HjMAvNyQoH5KwSC0e00QBm6SfnDwzXMlWhW5rdpTDW7fF5PdK+XQEr57lRKYDHUm9BaUq3CmTwd8tLPv/DzFa3pTPIXVUveQf6fF8U1IRGvuz3QZjVR3GuqFqXeZDB1i4DbALsUcvdVQ+pKQNTEoi9rJzF2+xcQmGd3M+9Et557M06J3GqHSEF56ldefcm5dvbExa1BkIGnx6/i5nnj2aUzAVIj5OFrlGm0CWcqmEOJuL6BkcknBujKDCZ8GqU7N6JiLePSPlO+Je6bWDNRgFMl240R4ndHTfDq5mgbYTpdegTWLNGMLE6HoZWmkIFjkWFuf/GCypI2Ws0ffOA08bTB7LUcYY=
+    on:
+        branch: master
+    skip_existing: true
+    distributions: 'sdist bdist_wheel'
