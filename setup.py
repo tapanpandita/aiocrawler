@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setup(
     name = "pyaiocrawler", # pip install pyaiocrawler
-    version = "0.2.1",
+    version = "0.2.2",
     author = 'Tapan Pandita',
     author_email = "tapan.pandita@gmail.com",
     description = "Asynchronous web crawler built on asyncio",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/aiocrawler",
+    url="https://github.com/tapanpandita/aiocrawler",
     license = "MIT",
     install_requires = ["aiohttp", "beautifulsoup4", "cchardet", "aiodns"],
     py_modules = ["aiocrawler"],
