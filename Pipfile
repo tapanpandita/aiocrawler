@@ -11,6 +11,7 @@ mypy = "*"
 pytest-asyncio = "*"
 coveralls = "*"
 pytest-cov = "*"
+pytest-mock = "*"
 
 [packages]
 aiohttp = "*"
