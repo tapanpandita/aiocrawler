@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from urllib.parse import urljoin, urlparse
 from typing import Set, Iterable, List, Tuple, Dict
 
-from aiohttp import ClientSession, ClientResponseError
+from aiohttp import ClientSession, ClientResponseError, ClientTimeout
 from aiohttp import ClientConnectionError, ClientPayloadError
 from aiohttp.client_exceptions import TooManyRedirects
 from bs4 import BeautifulSoup # type: ignore
@@ -37,6 +37,8 @@ class AIOCrawler:
     Crawler baseclass that concurrently crawls multiple pages till provided depth
     Built on asyncio
     '''
+    timeout = 30
+    max_redirects = 10
     valid_content_types: Set[str] = {
         'text/html',
         'text/xhtml',
@@ -61,19 +63,22 @@ class AIOCrawler:
         self.crawled_urls: Set[str] = set()
         self.results: List = []
         self.session: ClientSession = ClientSession()
-        self.task_queue: asyncio.Queue = asyncio.Queue(maxsize=concurrency)
+        self.task_queue: asyncio.Queue = asyncio.Queue()
 
     async def _make_request(self, url: str) -> str:
         '''
         Wrapper on aiohttp to make get requests on a shared session
         '''
-        logging.debug('Fetching: {url}')
+        logging.debug(f'Fetching: {url}')
         headers = {
             'User-Agent': self.user_agent,
         }
+        timeout = ClientTimeout(total=self.timeout)
+
         async with self.session.get(url, headers=headers,
                                     raise_for_status=True,
-                                    max_redirects=10) as response:
+                                    timeout=timeout,
+                                    max_redirects=self.max_redirects) as response:
 
             if response.content_type not in self.valid_content_types:
                 raise InvalidContentTypeError(response)
@@ -140,27 +145,32 @@ class AIOCrawler:
 
             try:
                 url, links, html = await self.crawl_page(task.url)
-            except ClientResponseError as excp:
-
-                if excp.status > 499:
-                    await self.retry_task(task)
-                else:
-                    logger.error(f'Client error with status: {excp.status} at url: {task.url}')
-
-            except ClientConnectionError as excp:
-                await self.retry_task(task)
             except InvalidContentTypeError as excp:
                 logger.error(f'Non html content type received in response at url: {task.url}')
             except TooManyRedirects as excp:
                 logger.error(f'Redirected too many times at url: {task.url}')
             except ClientPayloadError as excp:
                 logger.error(f'Invalid compression or encoding at url: {task.url}')
+            except asyncio.TimeoutError as excp:
+                logger.error(f'Timeout at url: {task.url}, retrying ....')
+                await self.retry_task(task)
+            except ClientResponseError as excp:
+
+                if excp.status > 499:
+                    logger.error(f'Server error at url: {task.url}, retrying ....')
+                    await self.retry_task(task)
+                else:
+                    logger.error(f'Client error with status: {excp.status} at url: {task.url}')
+
+            except ClientConnectionError as excp:
+                logger.error(f'Connection error at url: {task.url}, retrying ....')
+                await self.retry_task(task)
             except Exception as excp:
-                logger.error(f'Unhandled exception: {excp}')
+                logger.error(f'Unhandled exception: {type(excp)} {excp}')
             else:
                 self.results.append(self.parse(url, links, html))
 
-                for link in links:
+                for link in links.difference(self.crawled_urls):
                     task_message = TaskQueueMessage(link, task.depth + 1, 0)
                     await self.task_queue.put(task_message)
             finally:
