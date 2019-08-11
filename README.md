@@ -44,6 +44,8 @@ class TitleScraper(AIOCrawler):
     '''
     Subclasses AIOCrawler to extract titles for the pages on the given domain
     '''
+    timeout = 10
+    max_redirects = 2
 
     def parse(self, url: str, links: Set[str], html: bytes) -> Tuple[str, str]:
         '''
