@@ -1,7 +1,6 @@
 AIOCrawler
 ==========
 [![Build Status](https://travis-ci.org/tapanpandita/aiocrawler.svg?branch=master)](https://travis-ci.org/tapanpandita/aiocrawler)
-[![Coverage Status](https://coveralls.io/repos/github/tapanpandita/aiocrawler/badge.svg?branch=master)](https://coveralls.io/github/tapanpandita/aiocrawler?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/eab04685503c490082f1c6a545c4016e)](https://www.codacy.com/app/tapanpandita/aiocrawler?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tapanpandita/aiocrawler&amp;utm_campaign=Badge_Grade)
 [![PyPI version](https://badge.fury.io/py/pyaiocrawler.svg)](https://badge.fury.io/py/pyaiocrawler)
 
@@ -29,7 +28,8 @@ crawler = SitemapCrawler(
     init_url='https://www.google.com', # The base URL to start crawling from
     depth=3,                           # The maximum depth to crawl till
     concurrency=300,                   # Maximum concurrent requests to make
-    user_agent='My Amazing Crawler',   # User agent sent in the request
+    max_retries=3,                     # Maximum times the crawler will retry to get a response from a URL
+    user_agent='My Crawler',           # Use a custom user agent for requests
 )
 ```
 ### Extending the crawler
@@ -56,4 +56,14 @@ class TitleScraper(AIOCrawler):
 
 crawler = TitleScraper('https://www.google.com', 3)
 titles = await crawler.get_results()
+```
+Contributing
+------------
+### Installing dependencies
+```shell
+pipenv install --dev
+```
+### Running tests
+```shell
+pytest --cov=aiocrawler
 ```
