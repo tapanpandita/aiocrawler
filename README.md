@@ -29,7 +29,8 @@ crawler = SitemapCrawler(
     init_url='https://www.google.com', # The base URL to start crawling from
     depth=3,                           # The maximum depth to crawl till
     concurrency=300,                   # Maximum concurrent requests to make
-    user_agent='My Amazing Crawler',   # User agent sent in the request
+    max_retries=3,                     # Maximum times the crawler will retry to get a response from a URL
+    user_agent='My Crawler',           # Use a custom user agent for requests
 )
 ```
 ### Extending the crawler
