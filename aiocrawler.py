@@ -117,7 +117,7 @@ class AIOCrawler:
         Retries a task if max retries not hit
         '''
         if task.retry_count < self.max_retries:
-            self.crawled_urls.remove(task.url)
+            self.crawled_urls.discard(task.url)
             task_message = TaskQueueMessage(task.url, task.depth, task.retry_count + 1)
             await self.task_queue.put(task_message)
         else:
