@@ -58,3 +58,13 @@ class TitleScraper(AIOCrawler):
 crawler = TitleScraper('https://www.google.com', 3)
 titles = await crawler.get_results()
 ```
+Contributing
+------------
+### Installing dependencies
+```shell
+pipenv install --dev
+```
+### Running tests
+```shell
+pytest --cov=aiocrawler
+```
