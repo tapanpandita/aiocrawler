@@ -96,10 +96,6 @@ def test_initial_default_concurrency(crawler):
     assert crawler.concurrency == 100
 
 
-def test_initial_default_task_queue_maxsize(crawler):
-    assert crawler.task_queue.maxsize == crawler.concurrency
-
-
 def test_initial_default_max_retries(crawler):
     assert crawler.max_retries == 2
 
