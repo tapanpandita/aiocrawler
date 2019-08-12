@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name = "pyaiocrawler", # pip install pyaiocrawler
-    version = "0.3.2",
+    version = "0.3.3",
     author = "Tapan Pandita",
     author_email = "tapan.pandita@gmail.com",
     description = "Asynchronous web crawler built on asyncio",
