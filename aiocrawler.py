@@ -37,8 +37,8 @@ class AIOCrawler:
     Crawler baseclass that concurrently crawls multiple pages till provided depth
     Built on asyncio
     '''
-    timeout = 30
-    max_redirects = 10
+    timeout: int = 30
+    max_redirects: int = 10
     valid_content_types: Set[str] = {
         'text/html',
         'text/xhtml',
