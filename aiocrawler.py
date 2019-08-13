@@ -10,8 +10,8 @@ from typing import Set, Iterable, List, Tuple, Dict
 from aiohttp import ClientSession, ClientResponseError, ClientTimeout
 from aiohttp import ClientConnectionError, ClientPayloadError
 from aiohttp.client_exceptions import TooManyRedirects
-from bs4 import BeautifulSoup # type: ignore
-from bs4.element import Tag # type: ignore
+from bs4 import BeautifulSoup  # type: ignore
+from bs4.element import Tag  # type: ignore
 
 
 logger = logging.getLogger('AIOCrawler')
@@ -21,6 +21,7 @@ class InvalidContentTypeError(Exception):
     '''
     Exception raised when response content type is not in allowed types
     '''
+
     def __init__(self, response):
         self.response = response
 
@@ -37,6 +38,7 @@ class AIOCrawler:
     Crawler baseclass that concurrently crawls multiple pages till provided depth
     Built on asyncio
     '''
+
     timeout: int = 30
     max_redirects: int = 10
     valid_content_types: Set[str] = {
@@ -47,7 +49,14 @@ class AIOCrawler:
         'application/html',
     }
 
-    def __init__(self, init_url: str, depth: int = 1, concurrency: int = 100, max_retries: int = 2, user_agent: str = 'AIOCrawler') -> None:
+    def __init__(
+        self,
+        init_url: str,
+        depth: int = 1,
+        concurrency: int = 100,
+        max_retries: int = 2,
+        user_agent: str = 'AIOCrawler',
+    ) -> None:
         '''
         Initialize State
         '''
@@ -57,8 +66,7 @@ class AIOCrawler:
         self.max_retries = max_retries
         self.user_agent = user_agent
         self.base_url: str = '{}://{}'.format(
-            urlparse(self.init_url).scheme,
-            urlparse(self.init_url).netloc,
+            urlparse(self.init_url).scheme, urlparse(self.init_url).netloc
         )
         self.crawled_urls: Set[str] = set()
         self.results: List = []
@@ -70,15 +78,16 @@ class AIOCrawler:
         Wrapper on aiohttp to make get requests on a shared session
         '''
         logging.debug(f'Fetching: {url}')
-        headers = {
-            'User-Agent': self.user_agent,
-        }
+        headers = {'User-Agent': self.user_agent}
         timeout = ClientTimeout(total=self.timeout)
 
-        async with self.session.get(url, headers=headers,
-                                    raise_for_status=True,
-                                    timeout=timeout,
-                                    max_redirects=self.max_redirects) as response:
+        async with self.session.get(
+            url,
+            headers=headers,
+            raise_for_status=True,
+            timeout=timeout,
+            max_redirects=self.max_redirects,
+        ) as response:
 
             if response.content_type not in self.valid_content_types:
                 raise InvalidContentTypeError(response)
@@ -107,7 +116,9 @@ class AIOCrawler:
         return links
 
     def parse(self, url: str, links: Set[str], html: str):
-        raise NotImplementedError('{}.parse callback is not defined'.format(self.__class__.__name__))
+        raise NotImplementedError(
+            '{}.parse callback is not defined'.format(self.__class__.__name__)
+        )
 
     async def crawl_page(self, url: str) -> Tuple[str, Set[str], str]:
         '''
@@ -146,7 +157,9 @@ class AIOCrawler:
             try:
                 url, links, html = await self.crawl_page(task.url)
             except InvalidContentTypeError as excp:
-                logger.error(f'Non html content type received in response at url: {task.url}')
+                logger.error(
+                    f'Non html content type received in response at url: {task.url}'
+                )
             except TooManyRedirects as excp:
                 logger.error(f'Redirected too many times at url: {task.url}')
             except ClientPayloadError as excp:
@@ -160,7 +173,9 @@ class AIOCrawler:
                     logger.error(f'Server error at url: {task.url}, retrying ....')
                     await self.retry_task(task)
                 else:
-                    logger.error(f'Client error with status: {excp.status} at url: {task.url}')
+                    logger.error(
+                        f'Client error with status: {excp.status} at url: {task.url}'
+                    )
 
             except ClientConnectionError as excp:
                 logger.error(f'Connection error at url: {task.url}, retrying ....')
