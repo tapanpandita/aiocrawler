@@ -15,10 +15,11 @@ Usage
 -----
 ### Generating sitemap
 ```python
+import asyncio
 from aiocrawler import SitemapCrawler
 
 crawler = SitemapCrawler('https://www.google.com', depth=3)
-sitemap = await crawler.get_results()
+sitemap = asyncio.run(crawler.get_results())
 ```
 ### Configuring the crawler
 ```python
@@ -35,6 +36,7 @@ crawler = SitemapCrawler(
 ### Extending the crawler
 To create your own crawler, simply subclass `AIOCrawler` and implement the `parse` method. For every page crawled, the `parse` method is executed with the url of the page, the links in that page and the html of the page. The return of the `parse` method is appended to an array which is then available when the `get_results` method is called. We have implemented an example crawler here that extracts the title from the page.
 ```python
+import asyncio
 from aiocrawler import AIOCrawler
 from bs4 import BeautifulSoup          # We will use beautifulsoup to extract the title from the html
 from typing import Set, Tuple
@@ -57,7 +59,7 @@ class TitleScraper(AIOCrawler):
 
 
 crawler = TitleScraper('https://www.google.com', 3)
-titles = await crawler.get_results()
+titles = asyncio.run(crawler.get_results())
 ```
 Contributing
 ------------
