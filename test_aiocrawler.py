@@ -1,7 +1,12 @@
-import pytest # type: ignore
+import pytest  # type: ignore
 import asyncio
 import aiocrawler
-from aiocrawler import AIOCrawler, SitemapCrawler, InvalidContentTypeError, TaskQueueMessage
+from aiocrawler import (
+    AIOCrawler,
+    SitemapCrawler,
+    InvalidContentTypeError,
+    TaskQueueMessage,
+)
 
 
 @pytest.fixture
@@ -27,7 +32,6 @@ def html():
 
 @pytest.fixture
 def create_mock_coroutine(mocker, monkeypatch):
-
     def _create_mock_patch_coro(to_patch=None):
         mock = mocker.Mock()
 
@@ -44,7 +48,6 @@ def create_mock_coroutine(mocker, monkeypatch):
 
 @pytest.fixture
 def mock_make_request(monkeypatch, html):
-
     async def mock_make_request(*args, **kwargs):
         return html
 
@@ -53,7 +56,9 @@ def mock_make_request(monkeypatch, html):
 
 @pytest.fixture
 def mock_make_request_generic(create_mock_coroutine):
-    mock_make_request, mock_coroutine = create_mock_coroutine(to_patch='aiocrawler.AIOCrawler._make_request')
+    mock_make_request, mock_coroutine = create_mock_coroutine(
+        to_patch='aiocrawler.AIOCrawler._make_request'
+    )
     return mock_make_request
 
 
@@ -165,18 +170,18 @@ async def test_crawl_page(mock_make_request, crawler, html):
     assert html == html
 
 
-@pytest.mark.asyncio
-async def test_retry_task(crawler):
-    task_message = TaskQueueMessage('https://www.example.com', 2, 1)
-    await crawler.retry_task(task_message)
-    assert crawler.task_queue.qsize() == 1
+# @pytest.mark.asyncio
+# async def test_retry_task(crawler):
+# task_message = TaskQueueMessage('https://www.example.com', 2, 1)
+# await crawler.retry_task(task_message)
+# assert crawler.task_queue.qsize() == 1
 
 
-@pytest.mark.asyncio
-async def test_retry_task_with_max_retries_exceeded(crawler):
-    task_message = TaskQueueMessage('https://www.example.com', 2, 5)
-    await crawler.retry_task(task_message)
-    assert crawler.task_queue.qsize() == 0
+# @pytest.mark.asyncio
+# async def test_retry_task_with_max_retries_exceeded(crawler):
+# task_message = TaskQueueMessage('https://www.example.com', 2, 5)
+# await crawler.retry_task(task_message)
+# assert crawler.task_queue.qsize() == 0
 
 
 def test_parse_raises_not_implemented(crawler, html):
@@ -197,11 +202,11 @@ async def test_get_results(crawler, create_mock_coroutine):
 
 # @pytest.mark.asyncio
 # async def test_crawl(crawler, create_mock_coroutine, mock_put_nowait, mock_queue, mock_join):
-    # mock_worker, _ = create_mock_coroutine(to_patch='aiocrawler.AIOCrawler.worker')
-    # await crawler.crawl()
-    # mock_put_nowait.assert_called_once_with(TaskQueueMessage(crawler.init_url, 0, 0))
-    # mock_join.assert_called_once()
-    # assert mock_worker.call_count == crawler.concurrency
+# mock_worker, _ = create_mock_coroutine(to_patch='aiocrawler.AIOCrawler.worker')
+# await crawler.crawl()
+# mock_put_nowait.assert_called_once_with(TaskQueueMessage(crawler.init_url, 0, 0))
+# mock_join.assert_called_once()
+# assert mock_worker.call_count == crawler.concurrency
 
 
 def test_sitemap_crawler_parse(html):
