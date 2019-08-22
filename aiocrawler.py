@@ -5,7 +5,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlparse
-from typing import Set, Iterable, List, Tuple, Dict
+from typing import Set, Iterable, List, Tuple, Dict, Optional
 
 from aiohttp import ClientSession, ClientResponseError, ClientTimeout
 from aiohttp import ClientConnectionError, ClientPayloadError
@@ -70,13 +70,16 @@ class AIOCrawler:
         )
         self.crawled_urls: Set[str] = set()
         self.results: List = []
-        self.session: ClientSession = ClientSession()
-        self.task_queue: asyncio.Queue = asyncio.Queue()
+        self.session: Optional[ClientSession] = None
+        self.task_queue: Optional[asyncio.Queue] = None
 
     async def _make_request(self, url: str) -> str:
         '''
         Wrapper on aiohttp to make get requests on a shared session
         '''
+        if not self.session:
+            self.session = ClientSession()
+
         logging.debug(f'Fetching: {url}')
         headers = {'User-Agent': self.user_agent}
         timeout = ClientTimeout(total=self.timeout)
@@ -144,6 +147,10 @@ class AIOCrawler:
         Pops a url from the task queue and crawls the page
         '''
         while True:
+
+            if not self.task_queue:
+                break
+
             task = await self.task_queue.get()
             logger.debug(f'Working on {task.url} at {task.depth}')
 
@@ -195,6 +202,7 @@ class AIOCrawler:
         '''
         Starts concurrent workers and kickstarts scraping
         '''
+        self.task_queue = asyncio.Queue()
         task_message = TaskQueueMessage(self.init_url, 0, 0)
         self.task_queue.put_nowait(task_message)
         workers = [asyncio.create_task(self.worker()) for i in range(self.concurrency)]
@@ -204,7 +212,8 @@ class AIOCrawler:
         for worker in workers:
             worker.cancel()
 
-        await self.session.close()
+        if self.session:
+            await self.session.close()
 
     async def get_results(self) -> List:
         '''
@@ -225,3 +234,23 @@ class SitemapCrawler(AIOCrawler):
         Return a tuple to create the sitemap
         '''
         return url, links
+
+
+if __name__ == '__main__':
+    import argparse
+    import pprint
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', action='store', dest='init_url', type=str)
+    parser.add_argument('-d', action='store', dest='depth', default=1, type=int)
+    parser.add_argument('-c', action='store', dest='concurrency', default=100, type=int)
+    parser.add_argument('-r', action='store', dest='max_retries', default=2, type=int)
+    results = parser.parse_args()
+
+    crawler = SitemapCrawler(
+        results.init_url, results.depth, results.concurrency, results.max_retries
+    )
+    sitemap = asyncio.run(crawler.get_results())
+
+    pp = pprint.PrettyPrinter()
+    pp.pprint(sitemap)
